@@ -32,7 +32,8 @@ for key, message in mbox.iteritems():
 array.sort(key=extract_date)
 
 regex = re.compile(re.escape('re: '), re.IGNORECASE)
-no_subj = re.compile(re.escape('no subject'), re.IGNORECASE)
+no_subj = re.compile(re.escape('(no subject)'), re.IGNORECASE)
+newlines = re.compile(re.escape('[,.?!\t\n]+'))
 
 out = []
 
@@ -53,11 +54,11 @@ for message in array:
             sent_time = time.mktime(extract_date(prev_mes))
             resp_time = time.mktime(extract_date(message))
             diff =  resp_time - sent_time
-            print "appending"
-            out.append((sent_time, diff, "content", ("Important" in str(message['X-Gmail-Labels']))))
-
-print out
-print lookup_table
+            contents = ""
+            for part in message.walk():
+              if part.get_content_type() == 'text/plain':
+                contents+=(newlines.sub(' ',  part.get_payload()))
+            out.append((sent_time, diff, ("Important" in str(message['X-Gmail-Labels'])), contents))
 
 with open('tsv.tsv', 'wb') as tsvfile:
 	csvwriter = csv.writer(tsvfile, delimiter='\t') 
