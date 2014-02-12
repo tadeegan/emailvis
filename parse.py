@@ -34,14 +34,11 @@ array.sort(key=extract_date)
 regex = re.compile(re.escape('re: '), re.IGNORECASE)
 no_subj = re.compile(re.escape('no subject'), re.IGNORECASE)
 
-print array
 out = []
 
-print "for"
 for message in array:
     subject = message['subject']
     subject = regex.sub('', str(subject))
-    print subject
     if (subject is None) or (subject == "") or (subject == "None"):
         continue
     if no_subj.search(subject) is not None:
@@ -56,7 +53,11 @@ for message in array:
             sent_time = time.mktime(extract_date(prev_mes))
             resp_time = time.mktime(extract_date(message))
             diff =  resp_time - sent_time
-            out.append((sent_time, diff, "content"))
+            print "appending"
+            out.append((sent_time, diff, "content", ("Important" in str(message['X-Gmail-Labels']))))
+
+print out
+print lookup_table
 
 with open('tsv.tsv', 'wb') as tsvfile:
 	csvwriter = csv.writer(tsvfile, delimiter='\t') 
