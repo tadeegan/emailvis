@@ -1,16 +1,18 @@
 import mailbox
-import email
 import re
 import time
 import csv
+import sys
 from email.utils import parsedate
 
 
-MBOX = 'mail.mbox'
+MBOX = sys.argv[1]
+email = sys.argv[2]
+
+print MBOX
+print email
 
 mbox = mailbox.mbox(MBOX)
-
-email = 'tadeegan@gmail.com'
 
 def extract_date(email):
     date = email['Date']
@@ -24,19 +26,25 @@ array = []
 
 lookup_table = dict()
 
-for key , message in mbox.iteritems():
+for key, message in mbox.iteritems():
     array.append(message)
 
 array.sort(key=extract_date)
 
 regex = re.compile(re.escape('re: '), re.IGNORECASE)
+no_subj = re.compile(re.escape('no subject'), re.IGNORECASE)
 
+print array
 out = []
 
+print "for"
 for message in array:
     subject = message['subject']
     subject = regex.sub('', str(subject))
-    if subject == "":
+    print subject
+    if (subject is None) or (subject == "") or (subject == "None"):
+        continue
+    if no_subj.search(subject) is not None:
         continue
     if email in str(message['to']):
         lookup_table[subject] = message
