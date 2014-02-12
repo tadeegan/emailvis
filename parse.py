@@ -33,7 +33,7 @@ array.sort(key=extract_date)
 
 regex = re.compile(re.escape('re: '), re.IGNORECASE)
 no_subj = re.compile(re.escape('(no subject)'), re.IGNORECASE)
-newlines = re.compile(re.escape('[,.?!\t\n]+'))
+newlines = re.compile(r"\s+", re.MULTILINE)
 
 out = []
 
