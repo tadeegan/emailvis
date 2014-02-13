@@ -58,7 +58,7 @@ function groupByDay(d){
     return d.day;
 }
 var formatHours = function(miliseconds) {
-    return (miliseconds /100 / 60 / 60).toFixed(2);     
+    return (miliseconds /1000 / 60 / 60).toFixed(2);     
 }
 
 var global_data;
@@ -72,7 +72,7 @@ function run(){
 }
 
 var groupScale = d3.scale.linear()
-        .domain([0,6])
+        .domain([0,7])
         .range([0,width]);
 
 var svg = d3.select("body").append("svg")
@@ -92,10 +92,16 @@ function render(dataset){
     var y = d3.scale.linear()
         .domain([0, maxResponseTime])
         .range([height, 0]);
-    
+
+    var daysScale = d3.scale.ordinal().domain([0,6]).range([0, width]);
+
+
     var xAxis = d3.svg.axis()
-        .scale(x)
-        .orient("bottom");
+        .scale(daysScale)
+        .orient("bottom")
+        .tickFormat(function(d, i){
+            return week[d]
+        });
     
     var yAxis = d3.svg.axis()
         .scale(y)
@@ -103,15 +109,25 @@ function render(dataset){
         .ticks(10, "hrs")
         .tickFormat(formatHours);
     
+    var week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
     var day = svg.selectAll("g")
         .data(dataset);
 
         var newBars = day.enter().append("g")
-        .attr("class", "g")
-        .attr("transform", function(d) {
-            return "translate(" + groupScale(d.day) + ",0)";
-        });
+            .attr("class", "g")
+            .attr("transform", function(d) {
+                return "translate(" + (10 + groupScale(d.day)) + ",0)";
+            });
+
+        newBars.append("text")
+            .attr("x","0")
+            .attr("width", "60")
+            .attr("y", height + 20)
+            .attr("class", "labels")
+            .text(function(data){
+                return week[data.day]
+            });
 
         newBars.append("rect")
             .attr("class", "resp")
@@ -139,7 +155,8 @@ function render(dataset){
             .attr("height", function(d) { return y(d.urgentResponseTime); })
             .attr("y", function(d) { return height -  y(d.urgentResponseTime); })
 
-        svg.select("y axis").remove();
+        svg.select("g.y.axis").remove();
+
         svg.append("g")
             .attr("class", "y axis")
             .call(yAxis)
@@ -149,6 +166,7 @@ function render(dataset){
             .attr("dy", ".71em")
             .style("text-anchor", "end")
             .text("Response Time (hours)");
+
 }
 
 function type(d) {
@@ -157,7 +175,7 @@ function type(d) {
 }
 
 //actually do stuff
-d3.tsv("tsv.tsv", type, function(error, data) {
+d3.tsv("nelson.tsv", type, function(error, data) {
     data.forEach(function(d) {
         var localDate = new Date(d.date * 1000);
         d.day = localDate.getDay();

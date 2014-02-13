@@ -120,15 +120,19 @@ function render(dataset, urgent_data){
     .style("text-anchor", "end")
     .text("Response Time (hours)");
 
-    svg.append("path")
+    svg
     .datum(dataset)
+    .append("path")
     .attr("class", "line")
     .attr("d", line);
 
-    svg.append("path")
+    svg
     .datum(urgent_data)
+    .append("path")
     .attr("class", "urgent-line")
     .attr("d", line);
+
+
 }
 
             
