@@ -62,5 +62,7 @@ for message in array:
 
 with open('tsv.tsv', 'wb') as tsvfile:
 	csvwriter = csv.writer(tsvfile, delimiter='\t') 
+    labels = ("date","responseTime","urgent","Conent");
+    csvwriter.writerow(labels)
 	for blah in out:
 		csvwriter.writerow(blah)
