@@ -8,7 +8,7 @@ console.log(d3);
 var parseFullDate = d3.time.format("%m/%d/%Y %H:%M:%S %p").parse;
 //var parseMonthDate = d3.time.format("%m/%Y").parse;
 
-var filter = "ipad";
+var filter = "";
 
 function group(data, grouper){
     return d3.nest()
@@ -25,7 +25,8 @@ function group(data, grouper){
         });
 }
 
-d3.tsv("nelson.tsv", function(error, data) {
+d3.tsv("tsv.tsv", function(error, data) {
+        
         data = data.filter(function(response){
             return response.Content.toLowerCase().indexOf(filter) != -1;
         });
@@ -33,7 +34,6 @@ d3.tsv("nelson.tsv", function(error, data) {
             return d3.ascending(d1.date, d2.date);
         });
         data.forEach(function(d) {
-            d.miliseconds = d.date * 1000;
             var localDate = new Date(d.date * 1000);
             d.date = parseFullDate(localDate.toLocaleString());
             d.responseTime = parseFloat(d.responseTime);
@@ -49,14 +49,18 @@ d3.tsv("nelson.tsv", function(error, data) {
             return grouper;
         });
 
+        data = data.filter(function(response){
+            return response.responseTime < DAYSTOSECONDS * 10;
+        })
+
         urgent_data = group(urgent_data, function(d) {
             var grouper = d.date.getMonth()+"/"+d.date.getYear();
             return grouper;
         });
 
-        /*data.sort(function(d1, d2){
-            return d3.ascending(d1.date, d2.date);
-        });*/
+        urgent_data = urgent_data.filter(function(response){
+            return response.responseTime < DAYSTOSECONDS * 10;
+        })
         render(data, urgent_data);
     });
 
@@ -69,7 +73,7 @@ function render(dataset, urgent_data){
         .domain(d3.extent(dataset, function(d) {return d.date;}))
         .range([0, width]);
 
-    var y = d3.scale.log()
+    var y = d3.scale.linear()
         .domain([1, maxResponseTime])
         .range([height, 1]);
 
@@ -78,7 +82,7 @@ function render(dataset, urgent_data){
           .orient("bottom");
 
     var formatHours = function(miliseconds) {
-        return (miliseconds / 1000 / 60 / 60).toFixed(2);     
+        return (miliseconds / 60 / 60).toFixed(2);     
     }
 
     var yAxis = d3.svg.axis()
